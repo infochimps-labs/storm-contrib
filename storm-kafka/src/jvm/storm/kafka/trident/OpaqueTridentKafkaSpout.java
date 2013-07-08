@@ -100,7 +100,7 @@ public class OpaqueTridentKafkaSpout implements IOpaquePartitionedTridentSpout<M
                 Map ret = KafkaUtils.emitPartitionBatchNew(_config, consumer, partition, collector, lastMeta, _topologyInstanceId, _topologyName, _kafkaMeanFetchLatencyMetric, _kafkaMaxFetchLatencyMetric);
                 _kafkaOffsetMetric.setLatestEmittedOffset(partition, (Long)ret.get("offset"));
 
-                if (LOG.isDebugEnabled()) {
+                // if (LOG.isDebugEnabled()) {
                   long lastOffset = ((lastMeta == null) ? 0 : (Long)lastMeta.get("offset"));
                   long currOffset = ((ret      == null) ? 0 : (Long)ret.get("offset"));
                   long nextOffset = ((ret      == null) ? 0 : (Long)ret.get("nextOffset"));
@@ -114,13 +114,13 @@ public class OpaqueTridentKafkaSpout implements IOpaquePartitionedTridentSpout<M
                   
                   if ((currOffset != lastOffset) || (currOffset != nextOffset)) { // only when records this time or last
                       long currFetchTime = System.currentTimeMillis();
-                      LOG.debug(Utils.logString("KafkaSpout", ""+attempt, "batch", "", "#"+hashCode(),
-                              "r", String.format("%6.1f %7d",          (1000.0 * (currCount - _firstFetchCount) / (1+currFetchTime - _firstFetchTime)), (1000 * (currOffset - _firstFetchOffset) / (1+currFetchTime - _firstFetchTime))),
-                              "#", String.format("%5d %8d %8d",        nextCount-currCount,   currCount, nextCount),
-                              "b", String.format("%8d %10d %10d %10d", nextOffset-currOffset, lastOffset, currOffset, nextOffset, (1000.0 * nextCount / (1+currFetchTime - _firstFetchTime)))
+                      LOG.info(Utils.logString("KafkaSpout", ""+attempt, "batch", "", "#"+hashCode(),
+                              "#",    String.format("%5d %8d %8d",        nextCount-currCount,   currCount, nextCount),
+                              "rate", String.format("%5d %7d",            (1000 * (currCount - _firstFetchCount) / (1+currFetchTime - _firstFetchTime)), (1000 * (currOffset - _firstFetchOffset) / (1+currFetchTime - _firstFetchTime))),
+                              "size", String.format("%8d %10d %10d %10d", nextOffset-currOffset, lastOffset, currOffset, nextOffset, (1000.0 * nextCount / (1+currFetchTime - _firstFetchTime)))
                               ));
                   }
-                }
+                  //}
                 return ret;
             } catch(FailedFetchException e) {
                 LOG.warn("Failed to fetch from partition " + partition);
