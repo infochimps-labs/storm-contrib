@@ -11,7 +11,7 @@
   <url>http://github.com/nathanmarz/storm-contrib</url>
 
   <properties>
-    <storm.version>0.9.0-wip21</storm.version>
+    <storm.version>0.9.0-wip21-ics</storm.version>
   </properties>
   
   <dependencyManagement>
