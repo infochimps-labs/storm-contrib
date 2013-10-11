@@ -33,7 +33,7 @@ import java.util.*;
 import java.io.IOException;
 
 import com.infochimps.wukong.state.WuEsState;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+//import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 public class GithubTopology {
   public static class ExtractLanguageCommits extends BaseFunction {
@@ -83,23 +83,23 @@ public class GithubTopology {
     IBlobStore bs = new FileBlobStore("/Users/dlaw/dev/github-data/test-data");
     OpaqueTransactionalBlobSpout spout = new OpaqueTransactionalBlobSpout(bs, StartPolicy.EARLIEST, null);
 
-    WuEsState.Options esOptions = new WuEsState.Options();
-    esOptions.clusterName = "elasticsearch_dlaw";
+    //WuEsState.Options esOptions = new WuEsState.Options();
+    //esOptions.clusterName = "elasticsearch_dlaw";
 
     TridentTopology topology = new TridentTopology();
     topology.newStream("github-activities", spout)
         .each(new Fields("line"), new JsonParse(), new Fields("parsed-json"))
-//        .each(new Fields("parsed-json"), new Tap())
+        //.each(new Fields("parsed-json"), new Tap());
         .each(new Fields("parsed-json"), new ExtractLanguageCommits(), new Fields("language", "commits"))
-//        .each(new Fields("language","commits"), new Tap())
+        //.each(new Fields("language","commits"), new Tap());
         .groupBy(new Fields("language"))
-//        .persistentAggregate(new VisibleMemoryMapState.Factory(), new Fields("commits"), new Sum(), new Fields("commit-sum"));
-        .persistentAggregate(
-            new WuEsState.OpqFactory(Arrays.asList(new InetSocketTransportAddress("localhost", 9300)), esOptions),
-            new Fields("commits"), new Sum(), new Fields("commit-sum")
-         );
-//        .newValuesStream()
-//        .each(new Fields("language","commit-sum"), new Tap());
+        .persistentAggregate(new VisibleMemoryMapState.Factory(), new Fields("commits"), new Sum(), new Fields("commit-sum"))
+//        .persistentAggregate(
+//            new WuEsState.OpqFactory(Arrays.asList(new InetSocketTransportAddress("localhost", 9300)), esOptions),
+//            new Fields("commits"), new Sum(), new Fields("commit-sum")
+//         );
+        .newValuesStream()
+        .each(new Fields("language","commit-sum"), new Tap());
 
     Config conf = new Config();
     // Process one batch at a time, waiting 2 seconds between, and a 5 second batch timeout
